@@ -1,6 +1,5 @@
 import json
 import re
-import sys
 
 
 class JsonDataVerifier:
@@ -23,8 +22,7 @@ class JsonDataVerifier:
         :param error: occurred error
         :return: error message
         """
-        print(f"Error occurred: {error}")
-        sys.exit(1)
+        return f"Error occurred: {error}"
 
     def verify_aws_iam_role_policy(self):
         """
@@ -42,7 +40,7 @@ class JsonDataVerifier:
             else:
                 return True
         except (TypeError, ValueError, AttributeError) as e:
-            self.error_handler(e)
+            return self.error_handler(e)
 
     def load_json_file(self):
         """
@@ -53,7 +51,7 @@ class JsonDataVerifier:
             with open(self.json_file, "r") as inserted_json_file:
                 self.parsed_json_file = json.load(inserted_json_file)  # load JSON file
         except FileNotFoundError as e:  # handle situation if file not found
-            self.error_handler("No such file")
+            return self.error_handler("No such file")
         if len(self.parsed_json_file) == 0:
             raise ValueError("Empty JSON input")  # JSON input is empty
 
