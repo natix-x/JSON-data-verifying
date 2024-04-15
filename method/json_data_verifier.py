@@ -13,6 +13,7 @@ class JsonDataVerifier:
         self.parsed_json_file = None
         self.policy_name = None
         self.policy_document = None
+        self.resource = None
         self.verify_aws_iam_role_policy()
 
     @staticmethod
@@ -27,20 +28,31 @@ class JsonDataVerifier:
     def verify_aws_iam_role_policy(self):
         """
         verifies the input JSON data according to AWS::IAM::Role Policy, prints error message if any error occurred,
-        returns False if resource field contains a single asterisk or True in any other case
+        if so: returns error message;
+        if no: execute checks_resource method and returns False if resource field contains a single asterisk or True in any other case
         :return: True, False or error message
         """
         try:
             self.load_json_file()
             self.verify_policy_name()
             self.verify_policy_document()
-            resource = self.verify_statement_and_resource()
-            if resource == "*":
-                return False
-            else:
-                return True
+            self.resource = (
+                self.verify_statement_and_resource()
+            )  # verifies all elements of inserted file
         except (TypeError, ValueError, AttributeError) as e:
-            return self.error_handler(e)
+            return self.error_handler(e)  # return error message
+        else:
+            return self.check_resource()  # check what 'Resource' field contains
+
+    def check_resource(self):
+        """
+        returns False if resource field contains a single asterisk or True in any other case
+        :return: True or False
+        """
+        if (self.resource == "*") or ("*" in self.resource):
+            return False
+        else:
+            return True
 
     def load_json_file(self):
         """
