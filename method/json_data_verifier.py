@@ -27,22 +27,18 @@ class JsonDataVerifier:
 
     def verify_aws_iam_role_policy(self):
         """
-        verifies the input JSON data according to AWS::IAM::Role Policy, prints error message if any error occurred,
-        if so: returns error message;
+        verifies the input JSON data according to AWS::IAM::Role Policy, returns error message if any error occurred,
         if no: execute checks_resource method and returns False if resource field contains a single asterisk or True in any other case
         :return: True, False or error message
         """
-        try:
+
+        return (
             self.load_json_file()
-            self.verify_policy_name()
-            self.verify_policy_document()
-            self.resource = (
-                self.verify_statement_and_resource()
-            )  # verifies all elements of inserted file
-        except (TypeError, ValueError, AttributeError) as e:
-            return self.error_handler(e)  # return error message
-        else:
-            return self.check_resource()  # check what 'Resource' field contains
+            or self.verify_policy_name()
+            or self.verify_policy_document()
+            or self.verify_statement_and_resource()
+            or self.check_resource()
+        )
 
     def check_resource(self):
         """
@@ -56,61 +52,71 @@ class JsonDataVerifier:
 
     def load_json_file(self):
         """
-        loads JSON file, check if file exists or if it is empty, if so raises suitable error
-        :return: updated parsed_json_file attribute or ValueError
+        loads JSON file, check if file exists and is valid and not empty
+        :return: error message if occurred or None
         """
         try:
             with open(self.json_file, "r") as inserted_json_file:
                 self.parsed_json_file = json.load(inserted_json_file)  # load JSON file
+            if len(self.parsed_json_file) == 0:
+                return self.error_handler("Empty JSON input")  # JSON input is empty
         except FileNotFoundError as e:  # handle situation if file not found
             return self.error_handler("No such file")
-        if len(self.parsed_json_file) == 0:
-            raise ValueError("Empty JSON input")  # JSON input is empty
+        except json.decoder.JSONDecodeError as e:
+            return self.error_handler("JSON data is invalid")
 
     def verify_policy_name(self):
         """
         verifies Policy Name field in parsed json file,
-        checks if that field exists, has expected pattern and length (between 1 and 128 characters) and type(str)
-        and then raises suitable error
-        :return: updated policy name attribute or Attribute/Type/Value error
+        checks if that field exists, has expected pattern, length (between 1 and 128 characters) and type(str)
+        :return: error message or None
         """
         self.policy_name = self.parsed_json_file.get("PolicyName")
         if self.policy_name is None:
-            raise AttributeError("PolicyName field is not defined in JSON file")
+            return self.error_handler("PolicyName field is not defined in JSON file")
         if not isinstance(self.policy_name, str):
-            raise TypeError("PolicyName must be a string")
+            return self.error_handler("PolicyName must be a string")
         if not re.match(r"[\w+=,.@-]+", self.policy_name):
-            raise ValueError("PolicyName does not match expected pattern")
+            return self.error_handler("PolicyName does not match expected pattern")
         if len(self.policy_name) >= 128:
-            raise ValueError("PolicyName should have between 1 and 128 characters")
+            return self.error_handler(
+                "PolicyName should have between 1 and 128 characters"
+            )
 
     def verify_policy_document(self):
         """
         verifies Policy Document field in parsed json file,
         checks if that field exists and has appropriate type(Json)
         and then raises suitable error
-        :return: updated policy document attribute or Attribute/Type error
+        :return: error_message or None
         """
         self.policy_document = self.parsed_json_file.get("PolicyDocument")
         if self.policy_document is None:
-            raise AttributeError("PolicyDocument field is not defined in JSON file")
+            return self.error_handler(
+                "PolicyDocument field is not defined in JSON file"
+            )
         if not isinstance(self.policy_document, dict):
-            raise TypeError("PolicyDocument must be a JSON object")
+            return self.error_handler("PolicyDocument must be a JSON object")
 
     def verify_statement_and_resource(self):
         """
         verifies 'Statement' and 'Resource' field, checks if they exist
-        :return: Content of resource field or Attribute Error
+        :return: error message or None
         """
         statements = self.policy_document.get("Statement")
         if statements is None:
-            raise AttributeError(
+            return self.error_handler(
                 "Statement field is not defined in one of the policy documents"
             )
+        # if len(statements) == 1:
+        #     if not isinstance(statements, dict):
+        #         return self.error_handler("Each individual statement block must be enclosed in curly braces { }")
+        # else:
+        #     if not isinstance(statements, list):
+        #         return self.error_handler("For multiple statements, the array must be enclosed in square brackets [ ]")
         for statement in statements:
-            resource = statement.get("Resource")
-            if resource is None:
-                raise AttributeError(
+            self.resource = statement.get("Resource")
+            if self.resource is None:
+                return self.error_handler(
                     "Resource field is not defined in one of the statements."
                 )
-            return resource
