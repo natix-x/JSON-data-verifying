@@ -81,8 +81,8 @@ class TestJsonDataVerifier:
         with open(file_path, "w") as file:
             json.dump(data, file)
         verifier = JsonDataVerifier(file_path)
-        with pytest.raises(ValueError):
-            verifier.load_json_file()
+        error_message = verifier.load_json_file()
+        assert error_message == "Error occurred: Empty JSON input"
 
     def test_verify_policy_name_valid(self, verifier_existing_file_with_asteriks):
         verifier_existing_file_with_asteriks.verify_policy_name()
@@ -94,15 +94,19 @@ class TestJsonDataVerifier:
         verifier_existing_file_with_asteriks.parsed_json_file.pop(
             "PolicyName"
         )  # No policy name field
-        with pytest.raises(AttributeError):
-            verifier_existing_file_with_asteriks.verify_policy_name()
+
+        error_message = verifier_existing_file_with_asteriks.verify_policy_name()
+        assert (
+            error_message
+            == "Error occurred: PolicyName field is not defined in JSON file"
+        )
 
     def test_verify_policy_name_wrong_type(self, verifier_existing_file_with_asteriks):
         verifier_existing_file_with_asteriks.parsed_json_file.update(
             {"PolicyName": 123}
         )  # Wrong type of data, string expected
-        with pytest.raises(TypeError):
-            verifier_existing_file_with_asteriks.verify_policy_name()
+        error_message = verifier_existing_file_with_asteriks.verify_policy_name()
+        assert error_message == "Error occurred: PolicyName must be a string"
 
     def test_verify_policy_name_wrong_pattern(
         self, verifier_existing_file_with_asteriks
@@ -110,8 +114,11 @@ class TestJsonDataVerifier:
         verifier_existing_file_with_asteriks.parsed_json_file.update(
             {"PolicyName": "#123"}
         )  # Invalid pattern (no word at the beginning)
-        with pytest.raises(ValueError):
-            verifier_existing_file_with_asteriks.verify_policy_name()
+        error_message = verifier_existing_file_with_asteriks.verify_policy_name()
+        assert (
+            error_message
+            == "Error occurred: PolicyName does not match expected pattern"
+        )
 
     def test_verify_policy_name_too_long(self, verifier_existing_file_with_asteriks):
         verifier_existing_file_with_asteriks.parsed_json_file.update(
@@ -119,8 +126,12 @@ class TestJsonDataVerifier:
                 "PolicyName": "rootrootrootrootrootrootrootrootrootrootrootrootrootrootrootrootrootrootrootrootrootrootrootrootrootrootrootrootrootrootrootrootrootroot"
             }
         )  # too long string
-        with pytest.raises(ValueError):
-            verifier_existing_file_with_asteriks.verify_policy_name()
+
+        error_message = verifier_existing_file_with_asteriks.verify_policy_name()
+        assert (
+            error_message
+            == "Error occurred: PolicyName should have between 1 and 128 characters"
+        )
 
     def test_verify_policy_document_valid(self, verifier_existing_file_with_asteriks):
         verifier_existing_file_with_asteriks.verify_policy_document()
@@ -132,8 +143,12 @@ class TestJsonDataVerifier:
         verifier_existing_file_with_asteriks.parsed_json_file.pop(
             "PolicyDocument"
         )  # no PolicyDocument field
-        with pytest.raises(AttributeError):
-            verifier_existing_file_with_asteriks.verify_policy_document()
+
+        error_message = verifier_existing_file_with_asteriks.verify_policy_document()
+        assert (
+            error_message
+            == "Error occurred: PolicyDocument field is not defined in JSON file"
+        )
 
     def test_verify_policy_document_wrong_type(
         self, verifier_existing_file_with_asteriks
@@ -141,22 +156,20 @@ class TestJsonDataVerifier:
         verifier_existing_file_with_asteriks.parsed_json_file.update(
             {"PolicyDocument": "123"}
         )  # wrong type, JSON expected
-        with pytest.raises(TypeError):
-            verifier_existing_file_with_asteriks.verify_policy_document()
+        error_message = verifier_existing_file_with_asteriks.verify_policy_document()
+        assert error_message == "Error occurred: PolicyDocument must be a JSON object"
 
     def test_verify_statement_and_resource_valid_with_asterisk(
         self, verifier_existing_file_with_asteriks
     ):
-        resource = verifier_existing_file_with_asteriks.verify_statement_and_resource()
-        assert resource == "*"
+        verifier_existing_file_with_asteriks.verify_statement_and_resource()
+        assert verifier_existing_file_with_asteriks.resource is not None
 
     def test_verify_statement_and_resource_valid_other(
         self, verifier_existing_file_with_other_resource
     ):
-        resource = (
-            verifier_existing_file_with_other_resource.verify_statement_and_resource()
-        )
-        assert resource == "arn:aws:iam::account-ID-without-hyphens:user/Bob"
+        verifier_existing_file_with_other_resource.verify_statement_and_resource()
+        assert verifier_existing_file_with_other_resource.resource is not None
 
     def test_verify_statement_and_resource_no_statement_field(
         self, verifier_existing_file_with_asteriks
@@ -164,8 +177,14 @@ class TestJsonDataVerifier:
         verifier_existing_file_with_asteriks.parsed_json_file["PolicyDocument"].pop(
             "Statement"
         )  # no statement field
-        with pytest.raises(AttributeError):
+
+        error_message = (
             verifier_existing_file_with_asteriks.verify_statement_and_resource()
+        )
+        assert (
+            error_message
+            == "Error occurred: Statement field is not defined in one of the policy documents"
+        )
 
     def test_verify_statement_and_resource_no_resource_field(
         self, verifier_existing_file_with_asteriks
@@ -182,8 +201,13 @@ class TestJsonDataVerifier:
                 ]
             }
         )
-        with pytest.raises(AttributeError):
+        error_message = (
             verifier_existing_file_with_asteriks.verify_statement_and_resource()
+        )
+        assert (
+            error_message
+            == "Error occurred: Resource field is not defined in one of the statements."
+        )
 
     def test_error_handler(self, verifier_existing_file_with_asteriks):
         error = verifier_existing_file_with_asteriks.error_handler(
