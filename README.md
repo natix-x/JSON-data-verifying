@@ -13,6 +13,7 @@ Method returns logical false if an input JSON Resource field contains a single a
 ### Requirements and used libraries
 python 3.11+, json, pytest
 ### Project structure
+```
 ├── JSON_data
 │   ├── example.txt
 │   ├── example.py
@@ -32,7 +33,7 @@ python 3.11+, json, pytest
 ├── README.md
 ├── run.bat
 └── run_tests.bat
-
+```
 ### Setup
 1. First, clone this repository:
    ```sh
@@ -42,7 +43,7 @@ python 3.11+, json, pytest
    ```sh
    run.bat
    ```
-If you want to check another file, add it to JSON_data directory and run upper command again. 
+   If you want to check another file, add it to JSON_data directory and run upper command again. 
 3. For running tests: run_test.bat:
    ```sh
    run_tests.bat
