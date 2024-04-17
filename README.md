@@ -12,6 +12,8 @@ Input data format is defined as AWS::IAM::Role Policy - definition and example [
 Method returns logical false if an input JSON Resource field contains a single asterisk and true in any other case.
 ### Project structure
 ```
+project_root
+│
 ├── JSON_data
 │   ├── example.txt
 │   ├── example.py
@@ -29,8 +31,11 @@ Method returns logical false if an input JSON Resource field contains a single a
 │
 ├── .gitignore
 ├── README.md
-├── run.bat
-└── run_tests.bat
+├── RunMain.bat
+├── RunTests.bat
+└── VenvSetup.bat
+
+
 ```
 ### Requirements and used libraries
 python 3.11+, for tests: pytest
@@ -39,12 +44,12 @@ python 3.11+, for tests: pytest
    ```sh
    git clone https://github.com/natix-x/JSON-data-verifying.git
    ```
-2. For running programme: run.bat:
+2. For running main programme: RunMain.bat:
    ```sh
-   run.bat
+   RunMain.bat
    ```
    If you want to check another file, add it to JSON_data directory and run upper command again. 
-3. For running tests: run_test.bat:
+3. For running tests: RunTests.bat:
    ```sh
-   run_tests.bat
+   RunTests.bat
    ```
