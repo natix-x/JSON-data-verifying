@@ -62,7 +62,7 @@ class JsonDataVerifier:
                 return self.error_handler("Empty JSON input")  # JSON input is empty
         except FileNotFoundError as e:  # handle situation if file not found
             return self.error_handler("No such file")
-        except json.decoder.JSONDecodeError as e:
+        except json.decoder.JSONDecodeError:
             return self.error_handler("JSON data is invalid")
 
     def verify_policy_name(self):
@@ -108,12 +108,14 @@ class JsonDataVerifier:
             return self.error_handler(
                 "Statement field is not defined in one of the policy documents"
             )
-        # if len(statements) == 1:
-        #     if not isinstance(statements, dict):
-        #         return self.error_handler("Each individual statement block must be enclosed in curly braces { }")
-        # else:
-        #     if not isinstance(statements, list):
-        #         return self.error_handler("For multiple statements, the array must be enclosed in square brackets [ ]")
+
+        if isinstance(statements, dict):
+            statements = [statements]   # If individual statement put it in the list
+        elif not isinstance(statements, list):
+            return self.error_handler(
+                    "Each individual statement block must be enclosed in curly braces { }. "
+                    "For multiple statements, the array must be enclosed in square brackets [ ]"
+            )
         for statement in statements:
             self.resource = statement.get("Resource")
             if self.resource is None:

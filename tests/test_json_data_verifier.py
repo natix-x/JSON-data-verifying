@@ -1,6 +1,6 @@
 import pytest
 import json
-from method.json_data_verifier import JsonDataVerifier
+from verifier.json_data_verifier import JsonDataVerifier
 
 
 class TestJsonDataVerifier:
@@ -170,6 +170,21 @@ class TestJsonDataVerifier:
     ):
         verifier_existing_file_with_other_resource.verify_statement_and_resource()
         assert verifier_existing_file_with_other_resource.resource is not None
+
+    def test_verify_statement_and_resource_single_statement(
+        self, verifier_existing_file_with_asteriks
+    ):
+        verifier_existing_file_with_asteriks.parsed_json_file["PolicyDocument"].update(
+            {
+                "Statement": {  # single statement could be also enclosed in curly braces { }
+                    "Effect": "Allow",
+                    "Action": "s3:GetObject",
+                    "Resource": "arn:aws:s3:::example-bucket/*",
+                }
+            }
+        )
+        verifier_existing_file_with_asteriks.verify_statement_and_resource()
+        assert verifier_existing_file_with_asteriks.resource is not None
 
     def test_verify_statement_and_resource_no_statement_field(
         self, verifier_existing_file_with_asteriks
