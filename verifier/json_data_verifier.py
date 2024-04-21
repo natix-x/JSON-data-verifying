@@ -87,7 +87,6 @@ class JsonDataVerifier:
         """
         verifies Policy Document field in parsed json file,
         checks if that field exists and has appropriate type(Json)
-        and then raises suitable error
         :return: error_message or None
         """
         self.policy_document = self.parsed_json_file.get("PolicyDocument")
@@ -100,7 +99,8 @@ class JsonDataVerifier:
 
     def verify_statement_and_resource(self):
         """
-        verifies 'Statement' and 'Resource' field, checks if they exist
+        verifies 'Statement' and 'Resource' field, checks if they exist and
+        if 'Statement' field has proper format
         :return: error message or None
         """
         statements = self.policy_document.get("Statement")
