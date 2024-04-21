@@ -34,8 +34,6 @@ project_root
 ├── RunMain.bat
 ├── RunTests.bat
 └── VenvSetup.bat
-
-
 ```
 ### Requirements and used libraries
 python 3.11+, for tests: pytest
@@ -48,7 +46,8 @@ python 3.11+, for tests: pytest
    ```sh
    RunMain.bat
    ```
-   If you want to check another file, add it to JSON_data directory and run upper command again. 
+   I put some example files into [JSON_data](JSON_data) directory to show how programme works. 
+   But if you want to check another files just add them to [JSON_data](JSON_data) directory and run upper command again. 
 3. For running tests: RunTests.bat:
    ```sh
    RunTests.bat
